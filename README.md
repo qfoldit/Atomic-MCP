@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/xirtamesrevni-mcp-atomictoolkit-badge.png)](https://mseep.ai/app/xirtamesrevni-mcp-atomictoolkit)
+
 # ⚛️ MCP Atomic Toolkit
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
