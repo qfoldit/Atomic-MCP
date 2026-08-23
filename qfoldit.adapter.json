@@ -1,0 +1,13 @@
+{
+  "spec": "qfoldit.engine-adapter/0.1",
+  "engine": {"id": "atomic-mcp", "name": "qFoldIT Atomic MCP"},
+  "adapter": {"id": "qfoldit-atomic-mcp", "version": "0.1.0"},
+  "contracts": {"uag": "qfoldit.uag/0.1"},
+  "capabilities": [
+    {"id": "scene.graph", "level": "adapter", "status": "supported"},
+    {"id": "uag.validate", "level": "adapter", "status": "supported"},
+    {"id": "uag.apply", "level": "adapter", "status": "supported"},
+    {"id": "scientific.visualization", "level": "adapter", "status": "supported"}
+  ],
+  "notes": "Atomistic/material domain adapter. Calculation authority remains in Atomic-Calculations or other validated scientific engines."
+}
