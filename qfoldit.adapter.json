@@ -1,13 +1,13 @@
 {
-  "spec": "qfoldit.engine-adapter/0.1",
-  "engine": {"id": "atomic-mcp", "name": "qFoldIT Atomic MCP"},
-  "adapter": {"id": "qfoldit-atomic-mcp", "version": "0.1.0"},
-  "contracts": {"uag": "qfoldit.uag/0.1"},
+  "spec": "qfoldit.scientific-adapter/1.0",
+  "adapter": {"id": "qfoldit-atomic-mcp", "version": "0.2.0", "domain": "atomic-materials"},
+  "scientific_engine": "Atomic-MCP",
   "capabilities": [
-    {"id": "scene.graph", "level": "adapter", "status": "supported"},
-    {"id": "uag.validate", "level": "adapter", "status": "supported"},
-    {"id": "uag.apply", "level": "adapter", "status": "supported"},
-    {"id": "scientific.visualization", "level": "adapter", "status": "supported"}
+    {"id":"scene.graph","domain":"atomic-materials","description":"Expose atomistic and materials scene graph operations through qFoldIT canonical contracts.","input_schemas":["qfoldit.scientific.object/1.0","qfoldit.uag/0.1"],"output_schemas":["qfoldit.uag/0.1"],"validator_requirements":["atomic-calculations"],"consequential":false},
+    {"id":"uag.validate","domain":"atomic-materials","description":"Validate atomistic/material UAG representations before scientific execution.","input_schemas":["qfoldit.uag/0.1"],"output_schemas":["qfoldit.validation.completed/1.1"],"validator_requirements":["atomic-calculations"],"consequential":false},
+    {"id":"uag.apply","domain":"atomic-materials","description":"Apply an authorized atomistic/material operation under mission-scoped governance.","input_schemas":["qfoldit.uag/0.1","qfoldit.scientific-action-envelope/1.0"],"output_schemas":["qfoldit.scientific-action-envelope/1.0"],"validator_requirements":["atomic-calculations"],"consequential":true},
+    {"id":"scientific.visualization","domain":"atomic-materials","description":"Produce non-authoritative visualization representations of atomistic and materials objects.","input_schemas":["qfoldit.scientific.object/1.0"],"output_schemas":["qfoldit.visualization/1.0"],"validator_requirements":[],"consequential":false}
   ],
-  "notes": "Atomistic/material domain adapter. Calculation authority remains in Atomic-Calculations or other validated scientific engines."
+  "provenance_uri": "qfoldit://adapter/atomic-mcp/0.2.0",
+  "conformance": {"contract": "qfoldit.scientific-adapter/1.0", "governance": "qfoldit/.github@main"}
 }
