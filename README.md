@@ -236,3 +236,8 @@ Tune `temperature_K`, `friction`, and `taut` to control thermostat behavior.
 ## 📄 License
 
 MIT — see `LICENSE`.
+
+
+## qFoldIT QSIS integration
+
+This repository's qFoldIT adapter is currently a legacy compatibility declaration; the engine is not yet a qualified QSIS 0.1 provider. See [QFOLDIT-QSIS-READINESS.md](QFOLDIT-QSIS-READINESS.md) and the [canonical provider migration register](https://github.com/qfoldit/UAG-SOS/blob/main/SCHEMAS/QSIS/provider-adapter-migration-register.json).
