@@ -1,5 +1,7 @@
 # qFoldIT QSIS Integration Readiness — Atomic-MCP
 
+**Current normative baseline (2026-11-15):** [QSIS Core 1.0](https://github.com/qfoldit/UAG-SOS/blob/main/STANDARDS/QSIS/QSIS-CORE-AND-PROVIDER-COMPATIBILITY-1.0.md) and [Foldnite FIC / Block Matrix 1.0](https://github.com/qfoldit/UAG-SOS/blob/main/STANDARDS/FOLDNITE/FOLDNITE-BLOCK-INTEROPERABILITY-1.0.md). This readiness record remains the provider-specific status source; adoption of the standard does not promote Atomic-MCP above its evidenced qualification level.
+
 **Snapshot:** 2026-11-11  
 **Status:** Legacy adapter active; QSIS operation manifests are not yet connected or qualified  
 **Source:** `qfoldit/Atomic-MCP`
