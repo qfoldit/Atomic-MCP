@@ -201,14 +201,20 @@ def _run_tool(tool_name: str, impl: Callable[..., Dict], **kwargs: Any) -> Dict:
             compact_args,
         )
         error_kwargs = redact_path_parameters(public_kwargs) if workspace_configured else public_kwargs
-        error_result = _tool_error_response(tool_name, exc, elapsed_ms, error_kwargs)
+        error_result = _tool_error_response(
+            tool_name,
+            exc,
+            elapsed_ms,
+            error_kwargs,
+            include_report=not workspace_configured,
+        )
         if workspace_configured:
             error_result.pop("error_report_filepath", None)
             error_result["error"]["traceback"] = "<redacted in workspace mode>"
+            error_result["error"]["message"] = (
+                "Workspace operation failed; inspect restricted server-side diagnostics."
+            )
             if workspace_root is not None:
-                error_result["error"]["message"] = str(error_result["error"]["message"]).replace(
-                    str(workspace_root), "<workspace>"
-                )
                 return sanitize_workspace_output(error_result, workspace_root)
             return error_result
         return with_downloadable_artifacts(error_result)

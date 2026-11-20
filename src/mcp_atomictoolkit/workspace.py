@@ -169,13 +169,20 @@ def sanitize_workspace_output(value: Any, root: Path) -> Any:
             return cleaned
         if isinstance(node, list):
             return [scrub(item) for item in node]
-        if isinstance(node, str) and Path(node).is_absolute():
+        if isinstance(node, str) and (
+            Path(node).is_absolute() or PureWindowsPath(node).is_absolute() or PureWindowsPath(node).drive
+        ):
             try:
+                if PureWindowsPath(node).is_absolute() or PureWindowsPath(node).drive:
+                    return "<absolute-path-redacted>"
                 canonical = str(Path(node).resolve(strict=False))
-                Path(canonical).relative_to(root)
+                try:
+                    Path(canonical).relative_to(root)
+                except ValueError:
+                    return "<absolute-path-redacted>"
                 return artifact_ids.get(canonical, "<workspace-path-redacted>")
-            except (OSError, ValueError):
-                return node
+            except OSError:
+                return "<absolute-path-redacted>"
         return node
 
     return scrub(value)
