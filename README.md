@@ -240,4 +240,4 @@ MIT — see `LICENSE`.
 
 ## qFoldIT QSIS integration
 
-This repository's qFoldIT adapter is currently a legacy compatibility declaration; the engine is not yet a qualified QSIS 0.1 provider. See [QFOLDIT-QSIS-READINESS.md](QFOLDIT-QSIS-READINESS.md) and the [canonical provider migration register](https://github.com/qfoldit/UAG-SOS/blob/main/SCHEMAS/QSIS/provider-adapter-migration-register.json).
+This repository's qFoldIT adapter remains a legacy compatibility declaration; the engine is not yet a qualified QSIS 0.1 provider. Eight operation-level P1 contract candidates are indexed in [UAG-SOS](https://github.com/qfoldit/UAG-SOS/blob/main/SCHEMAS/QSIS/examples/atomic-mcp-operation-catalog.json). These are not live QSIS adapters. See [QFOLDIT-QSIS-READINESS.md](QFOLDIT-QSIS-READINESS.md) and the [canonical provider migration register](https://github.com/qfoldit/UAG-SOS/blob/main/SCHEMAS/QSIS/provider-adapter-migration-register.json).

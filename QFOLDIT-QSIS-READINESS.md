@@ -59,3 +59,27 @@ The current repository is below P2 for QSIS qualification. Do not use the presen
 - [Action/Evidence Migration Plan](https://github.com/qfoldit/UAG-SOS/blob/main/STANDARDS/MCP/LEGACY-ACTION-EVIDENCE-MIGRATION-PLAN-2026-11-11.md)
 - [Atomic-MCP QSIS Provider Assessment](https://github.com/qfoldit/UAG-SOS/blob/main/SCHEMAS/QSIS/ATOMIC-MCP-QSIS-PROVIDER-ASSESSMENT-2026-11-11.md)
 - [Provider Adapter Migration Register](https://github.com/qfoldit/UAG-SOS/blob/main/SCHEMAS/QSIS/provider-adapter-migration-register.json)
+
+
+## 6. 2026-11-20 — eight operation contracts registered
+
+The canonical [UAG-SOS Atomic-MCP operation catalog](https://github.com/qfoldit/UAG-SOS/blob/main/SCHEMAS/QSIS/examples/atomic-mcp-operation-catalog.json) now lists eight separate capability candidates:
+
+- `atomic.structure.build`
+- `atomic.structure.analyze`
+- `atomic.structure.write`
+- `atomic.structure.optimize`
+- `atomic.energy.single_point`
+- `atomic.dynamics.run`
+- `atomic.trajectory.analyze`
+- `atomic.trajectory.autocorrelation`
+
+The first five map to the atomistic-materials domain; the last three map to molecular dynamics. The existing legacy `qfoldit.adapter.json` remains unchanged for backward compatibility.
+
+**Readiness remains P1 contract-candidate only and below P2.** The new manifests and schemas are intended normalized QSIS contracts. The current FastMCP tool handlers do not yet consume QSIS Job Requests or produce QSIS Job Results. They still accept caller-provided path strings and may return absolute paths. The existing in-memory artifact store does not yet emit content digests. No workspace allowlist, symlink containment, output path redaction, durable job identity, Action Envelope 1.1 binding, signed validator handoff or Evidence 1.2 publication is implemented by this contract registration.
+
+The MD contract requires an explicit random seed, but the current worker does not expose or record one for Maxwell-Boltzmann velocity initialization. The amorphous/liquid structure builders also lack a request-level random seed. Those operation contracts are deliberately ahead of the current raw tool signatures and remain blocked until the implementation is changed and tested.
+
+The latest inspected source still forces JAX/CUDA-related environment variables to CPU-only values. Do not advertise GPU execution. Qualify each calculator/model backend and its licence separately.
+
+Static schema/fixture validation is registered in UAG-SOS, but the 2026-11-20 GitHub Actions attempt failed before any runner steps (empty step list and unavailable job log blob). No runner-executed PASS is claimed. See the canonical UAG-SOS operation catalog and provider assessment for the current qualification boundary.
