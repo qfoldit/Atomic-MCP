@@ -78,4 +78,4 @@ def test_workspace_output_redacts_paths_and_preserves_artifact_reference(tmp_pat
     assert "output_filepath" not in safe
     assert "filepath" not in safe["artifacts"][0]
     assert safe["outputs"]["trajectory"] == "artifact://art_0123456789abcdef0123456789abcdef"
-    assert safe["outputs"]["output_dir"] == "<workspace-path-redacted>"
+    assert "output_dir" not in safe["outputs"]

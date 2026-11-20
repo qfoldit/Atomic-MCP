@@ -95,9 +95,20 @@ def _error_hints(tool_name: str, kwargs: Dict[str, Any], exc: Exception) -> List
     return hints
 
 
-def _tool_error_response(tool_name: str, exc: Exception, elapsed_ms: float, kwargs: Dict[str, Any]) -> Dict[str, Any]:
+def _tool_error_response(
+    tool_name: str,
+    exc: Exception,
+    elapsed_ms: float,
+    kwargs: Dict[str, Any],
+    *,
+    include_report: bool = True,
+) -> Dict[str, Any]:
     compact_args = _compact_kwargs(kwargs)
-    error_report_filepath = _write_error_report(tool_name, exc, elapsed_ms, compact_args)
+    error_report_filepath = (
+        _write_error_report(tool_name, exc, elapsed_ms, compact_args)
+        if include_report
+        else None
+    )
     response: Dict[str, Any] = {
         "status": "error",
         "tool_name": tool_name,
