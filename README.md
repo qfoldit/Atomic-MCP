@@ -241,3 +241,9 @@ MIT — see `LICENSE`.
 ## qFoldIT QSIS integration
 
 This repository's qFoldIT adapter remains a legacy compatibility declaration; the engine is not yet a qualified QSIS 0.1 provider. Eight operation-level P1 contract candidates are indexed in [UAG-SOS](https://github.com/qfoldit/UAG-SOS/blob/main/SCHEMAS/QSIS/examples/atomic-mcp-operation-catalog.json). These are not live QSIS adapters. See [QFOLDIT-QSIS-READINESS.md](QFOLDIT-QSIS-READINESS.md) and the [canonical provider migration register](https://github.com/qfoldit/UAG-SOS/blob/main/SCHEMAS/QSIS/provider-adapter-migration-register.json).
+
+## Opt-in workspace security mode
+
+Set `QFOLDIT_WORKSPACE_ROOT` to an existing absolute server-side directory to restrict tool file paths to that workspace. In this mode, absolute paths and parent-directory traversal are rejected, symlink escapes are refused, generated artifacts carry SHA-256/size metadata, and result payloads do not return server absolute paths. When unset, legacy behavior is retained for compatibility.
+
+This is a file-boundary hardening step, not a complete production security boundary. Authentication, tenant-isolated workspace provisioning, durable job/artifact persistence, secure download authorization, QSIS Job Request/Result integration and deployment smoke remain required. See [QFOLDIT-WORKSPACE-SECURITY.md](QFOLDIT-WORKSPACE-SECURITY.md).

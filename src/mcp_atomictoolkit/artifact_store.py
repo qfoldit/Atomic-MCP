@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import mimetypes
 import os
 import re
@@ -12,30 +13,50 @@ from time import time
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 from uuid import uuid4
 
+from mcp_atomictoolkit.workspace import ensure_file_in_workspace, get_workspace_root
+
 
 @dataclass(frozen=True)
 class ArtifactRecord:
     artifact_id: str
     filepath: Path
     created_at: float
+    sha256: str
+    size_bytes: int
 
 
 class ArtifactStore:
-    """In-memory index of downloadable file artifacts."""
+    """In-memory index of downloadable file artifacts with content identity."""
 
     def __init__(self) -> None:
         self._records: Dict[str, ArtifactRecord] = {}
         self._lock = Lock()
 
     def register(self, filepath: str | Path) -> ArtifactRecord:
-        path = Path(filepath).expanduser().resolve()
-        if not path.exists() or not path.is_file():
-            raise FileNotFoundError(f"Artifact file not found: {path}")
+        path = Path(filepath).expanduser().resolve(strict=True)
+        root = get_workspace_root()
+        if root is not None:
+            path = ensure_file_in_workspace(path, root)
+        if not path.is_file():
+            raise FileNotFoundError("Artifact file not found or not a regular file")
+
+        before = path.stat()
+        digest = hashlib.sha256()
+        size_bytes = 0
+        with path.open("rb") as stream:
+            for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                digest.update(chunk)
+                size_bytes += len(chunk)
+        after = path.stat()
+        if before.st_size != after.st_size or before.st_mtime_ns != after.st_mtime_ns or size_bytes != after.st_size:
+            raise RuntimeError("Artifact changed while its content digest was being computed")
 
         record = ArtifactRecord(
             artifact_id=f"art_{uuid4().hex}",
             filepath=path,
             created_at=time(),
+            sha256=f"sha256:{digest.hexdigest()}",
+            size_bytes=size_bytes,
         )
         with self._lock:
             self._records[record.artifact_id] = record
@@ -75,8 +96,14 @@ _STRUCTURE_SUFFIXES = {".xyz", ".extxyz", ".cif", ".vasp", ".poscar"}
 def _is_artifact_candidate(value: Any) -> bool:
     if not isinstance(value, str):
         return False
-    path = Path(value).expanduser()
-    if not path.exists() or not path.is_file():
+    try:
+        path = Path(value).expanduser().resolve(strict=True)
+        root = get_workspace_root()
+        if root is not None:
+            path = ensure_file_in_workspace(path, root)
+    except (OSError, ValueError, PermissionError):
+        return False
+    if not path.is_file():
         return False
     return path.suffix.lower() in _ALLOWED_SUFFIXES
 
@@ -209,7 +236,7 @@ def with_downloadable_artifacts(result: Dict[str, Any]) -> Dict[str, Any]:
     for label, filepath in _iter_candidate_paths(result):
         try:
             record = artifact_store.register(filepath)
-        except FileNotFoundError:
+        except (FileNotFoundError, PermissionError, OSError, RuntimeError, ValueError):
             continue
 
         mime_type, _ = mimetypes.guess_type(record.filepath.name)
@@ -218,8 +245,13 @@ def with_downloadable_artifacts(result: Dict[str, Any]) -> Dict[str, Any]:
             {
                 "label": label,
                 "id": record.artifact_id,
+                "artifact_id": record.artifact_id,
                 "artifact_type": _guess_artifact_type(record.filepath),
                 "mimeType": mime_type or "application/octet-stream",
+                "media_type": mime_type or "application/octet-stream",
+                "format": record.filepath.suffix.lower().lstrip("."),
+                "sha256": record.sha256,
+                "size_bytes": record.size_bytes,
                 "filepath": str(record.filepath),
                 "download_url": f"{base_url}{rel_url}" if base_url else rel_url,
             }
@@ -233,8 +265,13 @@ def with_downloadable_artifacts(result: Dict[str, Any]) -> Dict[str, Any]:
                 {
                     "label": f"{label}_preview_html",
                     "id": preview_record.artifact_id,
+                    "artifact_id": preview_record.artifact_id,
                     "artifact_type": "html_preview",
                     "mimeType": "text/html",
+                    "media_type": "text/html",
+                    "format": "html",
+                    "sha256": preview_record.sha256,
+                    "size_bytes": preview_record.size_bytes,
                     "filepath": str(preview_record.filepath),
                     "download_url": f"{base_url}{preview_rel_url}" if base_url else preview_rel_url,
                 }

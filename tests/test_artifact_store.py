@@ -15,6 +15,8 @@ def test_register_and_get_round_trip(tmp_path: Path) -> None:
     assert record.artifact_id.startswith("art_")
     assert fetched == record
     assert record.filepath == sample.resolve()
+    assert record.sha256 == "sha256:3a6eb0790f39ac87c94f3856b2dd2c5d110e6811602261a9a923d3bb23adc8b7"
+    assert record.size_bytes == 4
 
 
 def test_is_artifact_candidate_and_iter(tmp_path: Path) -> None:
@@ -41,6 +43,8 @@ def test_with_downloadable_artifacts_adds_preview(tmp_path: Path, monkeypatch) -
 
     assert "artifacts" in result
     assert result["artifacts"][0]["download_url"].startswith("https://example.test/")
+    assert result["artifacts"][0]["sha256"].startswith("sha256:")
+    assert result["artifacts"][0]["size_bytes"] > 0
     assert any(item["artifact_type"] == "html_preview" for item in result["artifacts"])
     preview_path = Path(
         next(item["filepath"] for item in result["artifacts"] if item["artifact_type"] == "html_preview")

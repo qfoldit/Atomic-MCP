@@ -83,3 +83,20 @@ The MD contract requires an explicit random seed, but the current worker does no
 The latest inspected source still forces JAX/CUDA-related environment variables to CPU-only values. Do not advertise GPU execution. Qualify each calculator/model backend and its licence separately.
 
 Static schema/fixture validation is registered in UAG-SOS, but the 2026-11-20 GitHub Actions attempt failed before any runner steps (empty step list and unavailable job log blob). No runner-executed PASS is claimed. See the canonical UAG-SOS operation catalog and provider assessment for the current qualification boundary.
+
+
+## 7. 2026-11-20 — opt-in workspace containment and artifact digest implementation
+
+The source now includes an opt-in `QFOLDIT_WORKSPACE_ROOT` mode. When configured to an existing absolute directory:
+
+- tool path parameters are restricted to relative paths under the workspace;
+- absolute paths, parent traversal and symlink-resolved escapes are rejected;
+- input paths must resolve to regular files; output parents/directories are created within the workspace;
+- generated artifacts receive a SHA-256 digest and byte size when registered;
+- workspace-mode artifact responses omit the server-side absolute `filepath` and return the opaque artifact ID, digest, size and download URL;
+- ordinary result path fields are removed or mapped to `artifact://<artifact-id>`;
+- error reports, caller path values and tracebacks are not returned in workspace-mode error responses.
+
+When the environment variable is unset, legacy path handling and legacy absolute-path response fields are preserved for backward compatibility. This is an implementation change, not a production qualification claim: the workspace must be correctly mounted/permissioned, and authenticated user/tenant binding, durable artifact/job storage, race-resistant filesystem access, secure download authorization, QSIS Job Request/Result transport, Action Envelope 1.1 and provider smoke remain separate gates.
+
+The MD tool still lacks an explicit request-level random seed for Maxwell-Boltzmann initialization; the workspace patch does not solve that scientific reproducibility gap. GPU execution remains unqualified. P2/P3 must not be claimed until the updated offline tests and deployment-specific smoke/negative tests pass.

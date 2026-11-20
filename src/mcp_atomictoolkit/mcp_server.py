@@ -19,6 +19,13 @@ from fastmcp import FastMCP
 from fastmcp.server.tasks import TaskConfig
 
 from mcp_atomictoolkit.artifact_store import with_downloadable_artifacts
+from mcp_atomictoolkit.workspace import (
+    WORKSPACE_ENV,
+    get_workspace_root,
+    normalize_tool_paths,
+    redact_path_parameters,
+    sanitize_workspace_output,
+)
 from mcp_atomictoolkit.calculators import DEFAULT_CALCULATOR_NAME
 from mcp_atomictoolkit.task_support import apply_task_support_patches
 from mcp_atomictoolkit.workflows.core import (
@@ -173,10 +180,16 @@ def _collect_resource_snapshot() -> Dict[str, Any]:
 
 def _run_tool(tool_name: str, impl: Callable[..., Dict], **kwargs: Any) -> Dict:
     start = perf_counter()
-    compact_args = _compact_kwargs(kwargs)
+    public_kwargs = dict(kwargs)
+    workspace_configured = bool(os.environ.get(WORKSPACE_ENV, "").strip())
+    log_kwargs = redact_path_parameters(public_kwargs) if workspace_configured else public_kwargs
+    compact_args = _compact_kwargs(log_kwargs)
     logger.info("Tool %s called with args=%s", tool_name, compact_args)
+    workspace_root = None
     try:
-        result = impl(**kwargs)
+        workspace_root = get_workspace_root()
+        execution_kwargs, _ = normalize_tool_paths(tool_name, public_kwargs)
+        result = impl(**execution_kwargs)
     except Exception as exc:
         elapsed_ms = (perf_counter() - start) * 1000
         logger.exception(
@@ -187,11 +200,25 @@ def _run_tool(tool_name: str, impl: Callable[..., Dict], **kwargs: Any) -> Dict:
             exc,
             compact_args,
         )
-        return with_downloadable_artifacts(_tool_error_response(tool_name, exc, elapsed_ms, kwargs))
+        error_kwargs = redact_path_parameters(public_kwargs) if workspace_configured else public_kwargs
+        error_result = _tool_error_response(tool_name, exc, elapsed_ms, error_kwargs)
+        if workspace_configured:
+            error_result.pop("error_report_filepath", None)
+            error_result["error"]["traceback"] = "<redacted in workspace mode>"
+            if workspace_root is not None:
+                error_result["error"]["message"] = str(error_result["error"]["message"]).replace(
+                    str(workspace_root), "<workspace>"
+                )
+                return sanitize_workspace_output(error_result, workspace_root)
+            return error_result
+        return with_downloadable_artifacts(error_result)
 
     elapsed_ms = (perf_counter() - start) * 1000
     logger.info("Tool %s succeeded in %.1f ms", tool_name, elapsed_ms)
-    return with_downloadable_artifacts(result)
+    enriched = with_downloadable_artifacts(result)
+    if workspace_root is not None:
+        return sanitize_workspace_output(enriched, workspace_root)
+    return enriched
 
 
 @mcp.tool(task=TaskConfig(mode="optional"))
