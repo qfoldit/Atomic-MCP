@@ -100,3 +100,12 @@ The source now includes an opt-in `QFOLDIT_WORKSPACE_ROOT` mode. When configured
 When the environment variable is unset, legacy path handling and legacy absolute-path response fields are preserved for backward compatibility. This is an implementation change, not a production qualification claim: the workspace must be correctly mounted/permissioned, and authenticated user/tenant binding, durable artifact/job storage, race-resistant filesystem access, secure download authorization, QSIS Job Request/Result transport, Action Envelope 1.1 and provider smoke remain separate gates.
 
 The MD tool still lacks an explicit request-level random seed for Maxwell-Boltzmann initialization; the workspace patch does not solve that scientific reproducibility gap. GPU execution remains unqualified. P2/P3 must not be claimed until the updated offline tests and deployment-specific smoke/negative tests pass.
+
+
+## 8. 2026-11-20 — explicit molecular-dynamics random seed
+
+The Atomic-MCP MD tool path now accepts optional random_seed through FastMCP, workflow and runner. When supplied, a single seeded NumPy RandomState is used for Maxwell–Boltzmann velocity initialization and is passed into ASE's Langevin integrator, so both initial velocities and Langevin noise derive from the same reproducible RNG stream. The seed is returned in the execution result. When omitted, the previous non-seeded behavior is retained.
+
+The minimum ASE dependency is raised to 3.26.0 because that release line supports the documented RNG argument for MaxwellBoltzmannDistribution. The public QSIS MD input schema already requires an integer seed; the output contract and validation fixtures must additionally preserve the returned seed.
+
+This closes the explicit MD seed-input gap for this operation only. It does not seed the amorphous/liquid structure builders, establish numerical reproducibility across different calculators/hardware/dependency environments, or qualify GPU operation. Full provider conformance remains below P2 until the normalized QSIS adapter, environment/container provenance, tests, smoke and independent validator handoff are completed.

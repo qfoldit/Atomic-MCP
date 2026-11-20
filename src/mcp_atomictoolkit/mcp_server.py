@@ -412,6 +412,7 @@ async def run_md_workflow(
     friction: float = 0.02,
     taut: float = 100.0,
     trajectory_interval: int = 1,
+    random_seed: Optional[int] = None,
 ) -> Dict:
     """Run molecular dynamics workflow and return outputs.
 
@@ -437,6 +438,7 @@ async def run_md_workflow(
         friction=friction,
         taut=taut,
         trajectory_interval=trajectory_interval,
+        random_seed=random_seed,
     )
 
 

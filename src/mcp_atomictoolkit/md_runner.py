@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Optional
 
+import numpy as np
+
 from ase import Atoms, units
 from ase.io import Trajectory, write
 from ase.md.langevin import Langevin
@@ -79,9 +81,9 @@ def _attach_trajectory_writer(
     md.attach(_write_extxyz, interval=interval)
 
 
-def _initialize_velocities(atoms: Atoms, temperature_K: float) -> None:
-    """Initialize velocities using a Maxwell-Boltzmann distribution."""
-    MaxwellBoltzmannDistribution(atoms, temperature_K=temperature_K)
+def _initialize_velocities(atoms: Atoms, temperature_K: float, rng: Optional[np.random.RandomState] = None) -> None:
+    """Initialize velocities using a seeded-capable Maxwell-Boltzmann distribution."""
+    MaxwellBoltzmannDistribution(atoms, temperature_K=temperature_K, rng=rng)
     Stationary(atoms)
     ZeroRotation(atoms)
 
@@ -93,6 +95,7 @@ def _select_integrator(
     temperature_K: float,
     friction: float,
     taut: float,
+    rng: Optional[np.random.RandomState] = None,
 ):
     """Return an ASE MD integrator."""
     integrator_lower = integrator.lower()
@@ -100,7 +103,7 @@ def _select_integrator(
     if integrator_lower in {"velocityverlet", "nve"}:
         return VelocityVerlet(atoms, dt)
     if integrator_lower in {"langevin", "nvt-langevin"}:
-        return Langevin(atoms, dt, temperature_K=temperature_K, friction=friction)
+        return Langevin(atoms, dt, temperature_K=temperature_K, friction=friction, rng=rng)
     if integrator_lower in {"nvt", "nvt-berendsen"}:
         return NVTBerendsen(atoms, dt, temperature_K=temperature_K, taut=taut)
 
@@ -124,6 +127,7 @@ def run_md(
     friction: float = 0.02,
     taut: float = 100.0,
     trajectory_interval: int = 1,
+    random_seed: Optional[int] = None,
 ) -> Dict:
     """Run an ASE molecular dynamics simulation.
 
@@ -142,6 +146,7 @@ def run_md(
         friction: Langevin friction coefficient (1/fs).
         taut: NVT Berendsen thermostat time constant (fs).
         trajectory_interval: Interval between trajectory writes.
+        random_seed: Optional seed for velocity initialization and stochastic thermostats.
 
     Returns:
         Dict containing output file paths and summary statistics.
@@ -154,7 +159,16 @@ def run_md(
     )
     atoms.calc = calculator
 
-    _initialize_velocities(atoms, temperature_K)
+    if random_seed is not None:
+        if isinstance(random_seed, bool) or not isinstance(random_seed, int):
+            raise TypeError("random_seed must be an integer or None")
+        if random_seed < 0 or random_seed > 2**32 - 1:
+            raise ValueError("random_seed must be between 0 and 4294967295")
+        rng = np.random.RandomState(random_seed)
+    else:
+        rng = None
+
+    _initialize_velocities(atoms, temperature_K, rng=rng)
 
     md = _select_integrator(
         atoms=atoms,
@@ -163,6 +177,7 @@ def run_md(
         temperature_K=temperature_K,
         friction=friction,
         taut=taut,
+        rng=rng,
     )
 
     trajectory_path = Path(output_trajectory_filepath)
@@ -239,4 +254,5 @@ def run_md(
         "calculator_requested": calculator_name,
         "calculator_used": calculator_used,
         "calculator_fallbacks": calculator_errors,
+        "random_seed": random_seed,
     }

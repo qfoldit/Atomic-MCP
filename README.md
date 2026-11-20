@@ -247,3 +247,8 @@ This repository's qFoldIT adapter remains a legacy compatibility declaration; th
 Set `QFOLDIT_WORKSPACE_ROOT` to an existing absolute server-side directory to restrict tool file paths to that workspace. In this mode, absolute paths and parent-directory traversal are rejected, symlink escapes are refused, generated artifacts carry SHA-256/size metadata, and result payloads do not return server absolute paths. When unset, legacy behavior is retained for compatibility.
 
 This is a file-boundary hardening step, not a complete production security boundary. Authentication, tenant-isolated workspace provisioning, durable job/artifact persistence, secure download authorization, QSIS Job Request/Result integration and deployment smoke remain required. See [QFOLDIT-WORKSPACE-SECURITY.md](QFOLDIT-WORKSPACE-SECURITY.md).
+
+
+## MD random seed
+
+run_md_workflow accepts an optional random_seed. A supplied seed controls ASE Maxwell-Boltzmann initialization and, for Langevin, the thermostat RNG. The seed is returned with the run result. The dependency baseline is ASE 3.26 or newer. This is not a claim of bitwise reproducibility across different calculators, hardware or dependency builds.
